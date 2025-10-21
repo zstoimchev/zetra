@@ -1,6 +1,7 @@
 package dev;
 
 import dev.network.NetworkManager;
+import dev.utils.Logger;
 
 public class Main {
 
@@ -9,6 +10,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+
+        Logger logger = new Logger(Main.class);
+        logger.info("Application started.");
     }
 }

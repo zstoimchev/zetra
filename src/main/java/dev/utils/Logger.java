@@ -1,11 +1,10 @@
 package dev.utils;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Logger {
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String RED = "\u001B[31m";
     private static final String GREEN = "\u001B[32m";
     private static final String YELLOW = "\u001B[33m";
@@ -14,17 +13,22 @@ public class Logger {
     private static final String CYAN = "\u001B[36m";
     private static final String RESET = "\u001B[0m";
 
+    private final String className;
+
     public enum LogLevel {
         DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
     }
 
-    private static void log(String message, LogLevel level) {
-        String date = dateFormat.format(System.currentTimeMillis());
+    public Logger(Class<?> clazz) {
+        this.className = clazz.getSimpleName();
+    }
 
+    private void log(Throwable t, String message, LogLevel level) {
+        String date = dateFormat.format(LocalDateTime.now());
         String threadName = Thread.currentThread().getName();
-        String className = Arrays.stream(getCallerClassName().split("\\.")).skip(2).collect(Collectors.joining("."));
+        String locationInfo = getCallerLocation();
 
-        String messagePrefix = "[" + date + "][Thread: " + threadName + "][" + className + ".java] " + level + ": ";
+        String messagePrefix = "[" + date + "][" + locationInfo + "][Thread: " + threadName + "] " + level + ": ";
 
         switch (level) {
             case DEBUG -> messagePrefix = CYAN + messagePrefix + RESET;
@@ -37,49 +41,61 @@ public class Logger {
         }
 
         System.out.println(messagePrefix + message);
+        if (t != null) System.err.println(t.toString());
     }
 
-    private static String getCallerClassName() {
+    private String getCallerLocation() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        String fullClassName = stackTrace[4].getClassName();
-        String fullMethodName = stackTrace[4].getMethodName();
-        int lineNumber = stackTrace[4].getLineNumber();
-        return fullClassName + "." + fullMethodName + "():L" + lineNumber;
+
+        for (StackTraceElement element : stackTrace) {
+            String fullClassName = element.getClassName();
+            String simpleClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
+
+            if (simpleClassName.equals(className)) {
+                return className + "." + element.getMethodName() + ":L" + element.getLineNumber();
+            }
+        }
+
+        return className + ".unknown:L0";
     }
 
-    public static void info(String message) {
-        log(message, LogLevel.INFO);
+    public void info(String message) {
+        log(null, message, LogLevel.INFO);
     }
 
-    public static void debug(String message) {
-        log(message, LogLevel.DEBUG);
+    public void debug(String message) {
+        log(null, message, LogLevel.DEBUG);
     }
 
-    public static void notice(String message) {
-        log(message, LogLevel.NOTICE);
+    public void notice(String message) {
+        log(null, message, LogLevel.NOTICE);
     }
 
-    public static void warn(String message) {
-        log(message, LogLevel.WARNING);
+    public void warn(String message) {
+        log(null, message, LogLevel.WARNING);
     }
 
-    public static void error(String message) {
-        log(message, LogLevel.ERROR);
+    public void warn(Throwable t, String message) {
+        log(t, message, LogLevel.WARNING);
     }
 
-    public static void error(Throwable t, String message) {
-        log(message, LogLevel.ERROR);
+    public void error(String message) {
+        log(null, message, LogLevel.ERROR);
     }
 
-    public static void critical(String message) {
-        log(message, LogLevel.CRITICAL);
+    public void error(Throwable t, String message) {
+        log(t, message, LogLevel.ERROR);
     }
 
-    public static void alert(String message) {
-        log(message, LogLevel.ALERT);
+    public void critical(Throwable t, String message) {
+        log(t, message, LogLevel.CRITICAL);
     }
 
-    public static void emergency(String message) {
-        log(message, LogLevel.EMERGENCY);
+    public void alert(Throwable t, String message) {
+        log(t, message, LogLevel.ALERT);
+    }
+
+    public void emergency(Throwable t, String message) {
+        log(t, message, LogLevel.EMERGENCY);
     }
 }
