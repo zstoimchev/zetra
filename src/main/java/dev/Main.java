@@ -1,8 +1,13 @@
 package dev;
 
 import dev.network.NetworkManager;
+import dev.network.Peer;
 import dev.utils.Config;
+import dev.utils.Logger;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,16 +25,46 @@ public class Main {
     }
 
     private static void startNetwork() {
-        // one thread starts the server socket to listen for incoming connections
-        // another thread manages outgoing connections
-        // for now, just start the server socket
+        executorService.submit(Main::startServerSocket);
+        if (!config.isBootstrapNode()) executorService.submit(Main::connectToBootstrapNode);
 
-        // if the node is bootstrap node, it doesn't need to connect to other nodes
-        if (config.isBootstrapNode()) {
-            // log that we are bootstrap node and start accepting connections
+        Logger.info("Network is ready and booted up.");
+        networkManager.start();
+
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            Logger.critical(e, "Main thread interrupted. Exiting.");
+            throw new RuntimeException(e);
         }
+    }
 
+    private static void startServerSocket() {
+        try (ServerSocket serverSocket = new ServerSocket(config.getNodePort())) {
+            Logger.info("Server socket started on port " + config.getNodePort());
 
+            while (!Thread.currentThread().isInterrupted()) {
+                Socket clientSocket = serverSocket.accept();
+                Peer newPeer = networkManager.createInboundPeer(clientSocket);
+                executorService.submit(newPeer);
+            }
+
+        } catch (IOException e) {
+            Logger.emergency(e, "Could not start Bootstrap Node. Exiting.");
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void connectToBootstrapNode() {
+        Logger.info("Connecting to bootstrap node");
+        try (Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort())) {
+            Logger.info("Connected to boostrap node: " + socket.getRemoteSocketAddress());
+            Peer peer = networkManager.createOutboundPeer(socket);
+            executorService.submit(peer);
+        } catch (IOException e) {
+            Logger.emergency(e, "Could not start Bootstrap Node. Exiting.");
+            throw new RuntimeException(e);
+        }
 
     }
 }

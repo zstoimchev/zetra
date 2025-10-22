@@ -47,4 +47,12 @@ public class Config {
         return Integer.parseInt(properties.getProperty("node.connections.outbound.max"));
     }
 
+    public String getBootstrapNodeHost() {
+        return properties.getProperty("bootstrap.host");
+    }
+
+    public int getBootstrapNodePort() {
+        return Integer.parseInt(properties.getProperty("bootstrap.port"));
+    }
+
 }
