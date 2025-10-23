@@ -13,22 +13,15 @@ public class Logger {
     private static final String CYAN = "\u001B[36m";
     private static final String RESET = "\u001B[0m";
 
-    private final String className;
-
     public enum LogLevel {
         DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
     }
 
-    public Logger(Class<?> clazz) {
-        this.className = clazz.getSimpleName();
-    }
-
-    private void log(Throwable t, String message, LogLevel level) {
+    private static void log(Throwable t, String message, LogLevel level) {
         String date = dateFormat.format(LocalDateTime.now());
         String threadName = Thread.currentThread().getName();
-        String locationInfo = getCallerLocation();
 
-        String messagePrefix = "[" + date + "][" + locationInfo + "][Thread: " + threadName + "] " + level + ": ";
+        String messagePrefix = "[" + date + "][Thread: " + threadName + "] " + level + ": ";
 
         switch (level) {
             case DEBUG -> messagePrefix = CYAN + messagePrefix + RESET;
@@ -44,58 +37,43 @@ public class Logger {
         if (t != null) System.err.println(t.toString());
     }
 
-    private String getCallerLocation() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-
-        for (StackTraceElement element : stackTrace) {
-            String fullClassName = element.getClassName();
-            String simpleClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
-
-            if (simpleClassName.equals(className)) {
-                return className + "." + element.getMethodName() + ":L" + element.getLineNumber();
-            }
-        }
-
-        return className + ".unknown:L0";
-    }
-
-    public void info(String message) {
+    public static void info(String message) {
         log(null, message, LogLevel.INFO);
     }
 
-    public void debug(String message) {
+    public static void debug(String message) {
         log(null, message, LogLevel.DEBUG);
     }
 
-    public void notice(String message) {
+    public static void notice(String message) {
         log(null, message, LogLevel.NOTICE);
     }
 
-    public void warn(String message) {
+    public static void warn(String message) {
         log(null, message, LogLevel.WARNING);
     }
 
-    public void warn(Throwable t, String message) {
+    public static void warn(Throwable t, String message) {
         log(t, message, LogLevel.WARNING);
     }
 
-    public void error(String message) {
+    public static void error(String message) {
         log(null, message, LogLevel.ERROR);
     }
 
-    public void error(Throwable t, String message) {
+    public static void error(Throwable t, String message) {
         log(t, message, LogLevel.ERROR);
     }
 
-    public void critical(Throwable t, String message) {
+    public static void critical(Throwable t, String message) {
         log(t, message, LogLevel.CRITICAL);
     }
 
-    public void alert(Throwable t, String message) {
+    public static void alert(Throwable t, String message) {
         log(t, message, LogLevel.ALERT);
     }
 
-    public void emergency(Throwable t, String message) {
+    public static void emergency(Throwable t, String message) {
         log(t, message, LogLevel.EMERGENCY);
     }
 }
