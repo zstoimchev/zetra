@@ -48,9 +48,9 @@ public class Peer implements Runnable {
     private void closeConnection() {
         isRunning.set(false);
         try {
-            socket.close();
             in.close();
             out.close();
+            socket.close();
             Logger.info("Closed connection with peer: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
             Logger.warn(e, "Error closing connection with peer: " + socket.getRemoteSocketAddress());
