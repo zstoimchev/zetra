@@ -58,7 +58,7 @@ public class Main {
     private static void connectToBootstrapNode() {
         Logger.info("Connecting to bootstrap node");
         try (Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort())) {
-            Logger.info("Connected to boostrap node: " + socket.getRemoteSocketAddress());
+            Logger.info("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
             Peer peer = networkManager.createOutboundPeer(socket);
             executorService.submit(peer);
         } catch (IOException e) {
