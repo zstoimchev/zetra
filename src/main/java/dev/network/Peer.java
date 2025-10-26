@@ -8,18 +8,20 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Peer implements Runnable {
+    private final Logger logger;
     private final Socket socket;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final BufferedReader in;
     private final BufferedWriter out;
 
     public Peer(Socket socket) {
+        this.logger = Logger.getLogger(Peer.class);
         this.socket = socket;
         try {
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
-            Logger.sError(e, "Could not create input/output stream for peer.");
+            logger.error("Could not create input/output stream for peer.", e);
             throw new CustomException("Could not create input/output stream for peer.", e);
         }
     }
@@ -27,20 +29,20 @@ public class Peer implements Runnable {
     @Override
     public void run() {
         isRunning.set(true);
-        Logger.sInfo("Peer connected: " + socket.getRemoteSocketAddress());
+        logger.info("Peer connected: " + socket.getRemoteSocketAddress());
 
         try {
             String message;
             while (isRunning.get() && (message = in.readLine()) != null) {
-                Logger.sInfo("Received message from " + socket.getRemoteSocketAddress() + ": " + message);
+                logger.info("Received message from {}, {}", socket.getRemoteSocketAddress(), message);
                 // Handle the received message here
                 // TODO: Implement message handling logic
 //                networkManager.processIncomingMessage(this, line);
                 // maybe create a protocol that handles the messages aka dispatches them?
             }
-            Logger.sInfo("Peer disconnected: " + socket.getRemoteSocketAddress());
+            logger.info("Peer disconnected: {}", socket.getRemoteSocketAddress());
         } catch (IOException e) {
-            Logger.sError(e, "Connection error with peer: " + socket.getRemoteSocketAddress());
+            logger.error("Connection error with peer: " + socket.getRemoteSocketAddress(), e);
             throw new CustomException("Connection error with peer: " + socket.getRemoteSocketAddress(), e);
         } finally {
             closeConnection();
@@ -53,9 +55,9 @@ public class Peer implements Runnable {
             in.close();
             out.close();
             socket.close();
-            Logger.sInfo("Closed connection with peer: " + socket.getRemoteSocketAddress());
+            logger.info("Closed connection with peer: {}", socket.getRemoteSocketAddress());
         } catch (IOException e) {
-            Logger.sWarn(e, "Error closing connection with peer: " + socket.getRemoteSocketAddress());
+            logger.warn("Error closing connection with peer: {}", socket.getRemoteSocketAddress(), e);
             throw new CustomException("Error closing connection with peer: " + this.socket.getRemoteSocketAddress(), e);
         }
     }

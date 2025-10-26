@@ -6,7 +6,6 @@ import dev.network.PeerPool;
 import dev.utils.Config;
 import dev.utils.CustomException;
 import dev.utils.Logger;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -15,7 +14,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Slf4j
 public class Main {
     private final Logger logger;
     private final Config config;
@@ -45,7 +43,6 @@ public class Main {
 
         logger.info("Network is ready and booted up.");
         networkManager.start();
-        logger.debug("----------");
 
         // TODO: replace with proper wait/notify mechanism
         // keep main thread alive while network is running
@@ -54,7 +51,7 @@ public class Main {
             try {
                 Thread.sleep(Long.MAX_VALUE);
             } catch (InterruptedException e) {
-                Logger.sCritical(e, "Main thread interrupted. Exiting.");
+                logger.error("Main thread interrupted. Exiting.", e);
                 throw new CustomException("Main thread interrupted.", e);
             }
         }
@@ -72,7 +69,7 @@ public class Main {
 
             }
         } catch (IOException e) {
-            Logger.sEmergency(e, "Could not start Bootstrap Node. Exiting.");
+            logger.error("Could not start Bootstrap Node. Exiting.", e);
             throw new CustomException("Could not start Bootstrap Node.", e);
         }
     }
@@ -80,12 +77,13 @@ public class Main {
     private void connectToBootstrapNode() {
         logger.info("Connecting to bootstrap node at " + config.getBootstrapNodeHost() + ":" + config.getBootstrapNodePort());
 
-        try (Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort())) {
-            Logger.sInfo("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
+        try {
+            Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort());
+            logger.info("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
             Peer peer = networkManager.createOutboundPeer(socket);
             executorService.submit(peer);
         } catch (IOException e) {
-            Logger.sEmergency(e, "Could not connect to Bootstrap Node. Exiting.");
+            logger.error("Could not connect to Bootstrap Node. Exiting.", e);
             throw new CustomException("Could not connect to Bootstrap Node.", e);
         }
     }
