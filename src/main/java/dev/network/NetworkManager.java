@@ -6,12 +6,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-//@Getter
-//@Setter
+@Getter
+@Setter
 public class NetworkManager {
+    private AtomicBoolean isRunning = new AtomicBoolean(false);
+
     private final Config config;
     private final PeerPool peerPool;
+
+    // methods to broadcast messages to peers
+
 
     public NetworkManager(Config config) {
         this.config = config;
@@ -20,6 +26,7 @@ public class NetworkManager {
 
     public void start() {
         Logger.info("Starting network manager");
+        isRunning.set(true);
     }
 
     public Peer createOutboundPeer(Socket socket) {
@@ -39,5 +46,9 @@ public class NetworkManager {
         return peer;
         */
         return new Peer(socket);
+    }
+
+    public boolean isRunning() {
+        return isRunning.get();
     }
 }

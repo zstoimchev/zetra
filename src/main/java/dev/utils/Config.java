@@ -17,7 +17,7 @@ public class Config {
             properties.load(fis);
         } catch (IOException e) {
             Logger.error(e, "Could not load config file: " + filename);
-            throw new Exception("Could not load file: " + filename, e);
+            throw new CustomException("Could not load file: " + filename, e);
         }
         return new Config(properties);
     }

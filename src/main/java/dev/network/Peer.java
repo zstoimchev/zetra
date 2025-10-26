@@ -1,5 +1,6 @@
 package dev.network;
 
+import dev.utils.CustomException;
 import dev.utils.Logger;
 
 import java.io.*;
@@ -19,7 +20,7 @@ public class Peer implements Runnable {
             this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
             Logger.error(e, "Could not create input/output stream for peer.");
-            throw new RuntimeException(e);
+            throw new CustomException("Could not create input/output stream for peer.", e);
         }
     }
 
@@ -40,6 +41,7 @@ public class Peer implements Runnable {
             Logger.info("Peer disconnected: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
             Logger.error(e, "Connection error with peer: " + socket.getRemoteSocketAddress());
+            throw new CustomException("Connection error with peer: " + socket.getRemoteSocketAddress(), e);
         } finally {
             closeConnection();
         }
@@ -54,6 +56,7 @@ public class Peer implements Runnable {
             Logger.info("Closed connection with peer: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
             Logger.warn(e, "Error closing connection with peer: " + socket.getRemoteSocketAddress());
+            throw new CustomException("Error closing connection with peer: " + this.socket.getRemoteSocketAddress(), e);
         }
     }
 }
