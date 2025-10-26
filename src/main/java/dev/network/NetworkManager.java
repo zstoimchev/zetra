@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Getter
 @Setter
 public class NetworkManager {
+    private final Logger logger;
+
     private AtomicBoolean isRunning = new AtomicBoolean(false);
 
     private final Config config;
@@ -20,12 +22,13 @@ public class NetworkManager {
 
 
     public NetworkManager(Config config) {
+        this.logger = Logger.getLogger(NetworkManager.class);
         this.config = config;
         this.peerPool = new PeerPool();
     }
 
     public void start() {
-        Logger.info("Starting network manager");
+        logger.info("Starting network manager");
         isRunning.set(true);
     }
 

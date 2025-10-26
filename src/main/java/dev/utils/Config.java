@@ -16,7 +16,7 @@ public class Config {
         try (FileInputStream fis = new FileInputStream(filename)) {
             properties.load(fis);
         } catch (IOException e) {
-            Logger.error(e, "Could not load config file: " + filename);
+            Logger.sError(e, "Could not load config file: " + filename);
             throw new CustomException("Could not load file: " + filename, e);
         }
         return new Config(properties);

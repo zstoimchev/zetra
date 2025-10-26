@@ -19,7 +19,7 @@ public class Peer implements Runnable {
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
-            Logger.error(e, "Could not create input/output stream for peer.");
+            Logger.sError(e, "Could not create input/output stream for peer.");
             throw new CustomException("Could not create input/output stream for peer.", e);
         }
     }
@@ -27,20 +27,20 @@ public class Peer implements Runnable {
     @Override
     public void run() {
         isRunning.set(true);
-        Logger.info("Peer connected: " + socket.getRemoteSocketAddress());
+        Logger.sInfo("Peer connected: " + socket.getRemoteSocketAddress());
 
         try {
             String message;
             while (isRunning.get() && (message = in.readLine()) != null) {
-                Logger.info("Received message from " + socket.getRemoteSocketAddress() + ": " + message);
+                Logger.sInfo("Received message from " + socket.getRemoteSocketAddress() + ": " + message);
                 // Handle the received message here
                 // TODO: Implement message handling logic
 //                networkManager.processIncomingMessage(this, line);
                 // maybe create a protocol that handles the messages aka dispatches them?
             }
-            Logger.info("Peer disconnected: " + socket.getRemoteSocketAddress());
+            Logger.sInfo("Peer disconnected: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
-            Logger.error(e, "Connection error with peer: " + socket.getRemoteSocketAddress());
+            Logger.sError(e, "Connection error with peer: " + socket.getRemoteSocketAddress());
             throw new CustomException("Connection error with peer: " + socket.getRemoteSocketAddress(), e);
         } finally {
             closeConnection();
@@ -53,9 +53,9 @@ public class Peer implements Runnable {
             in.close();
             out.close();
             socket.close();
-            Logger.info("Closed connection with peer: " + socket.getRemoteSocketAddress());
+            Logger.sInfo("Closed connection with peer: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
-            Logger.warn(e, "Error closing connection with peer: " + socket.getRemoteSocketAddress());
+            Logger.sWarn(e, "Error closing connection with peer: " + socket.getRemoteSocketAddress());
             throw new CustomException("Error closing connection with peer: " + this.socket.getRemoteSocketAddress(), e);
         }
     }

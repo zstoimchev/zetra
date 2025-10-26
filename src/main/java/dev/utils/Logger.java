@@ -1,5 +1,8 @@
 package dev.utils;
 
+import lombok.experimental.Delegate;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -17,7 +20,21 @@ public class Logger {
         DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
     }
 
-    private static void log(Throwable t, String message, LogLevel level) {
+    @Delegate
+    private final org.slf4j.Logger logger;
+
+    public Logger(Class<?> clazz) {
+        this.logger = LoggerFactory.getLogger(clazz);
+    }
+
+    public static Logger getLogger(Class<?> clazz) {
+        return new Logger(clazz);
+    }
+
+    /*************************************************************
+     * STATIC METHODS FOR SIMPLE LOGGING WITHOUT LOGGER INSTANCE *
+     *************************************************************/
+    private static void sLog(Throwable t, String message, LogLevel level) {
         String date = dateFormat.format(LocalDateTime.now());
         String threadName = Thread.currentThread().getName();
 
@@ -37,43 +54,43 @@ public class Logger {
         if (t != null) System.err.println(t.toString());
     }
 
-    public static void info(String message) {
-        log(null, message, LogLevel.INFO);
+    public static void sInfo(String message) {
+        sLog(null, message, LogLevel.INFO);
     }
 
-    public static void debug(String message) {
-        log(null, message, LogLevel.DEBUG);
+    public static void sDebug(String message) {
+        sLog(null, message, LogLevel.DEBUG);
     }
 
-    public static void notice(String message) {
-        log(null, message, LogLevel.NOTICE);
+    public static void sNotice(String message) {
+        sLog(null, message, LogLevel.NOTICE);
     }
 
-    public static void warn(String message) {
-        log(null, message, LogLevel.WARNING);
+    public static void sWarn(String message) {
+        sLog(null, message, LogLevel.WARNING);
     }
 
-    public static void warn(Throwable t, String message) {
-        log(t, message, LogLevel.WARNING);
+    public static void sWarn(Throwable t, String message) {
+        sLog(t, message, LogLevel.WARNING);
     }
 
-    public static void error(String message) {
-        log(null, message, LogLevel.ERROR);
+    public static void sError(String message) {
+        sLog(null, message, LogLevel.ERROR);
     }
 
-    public static void error(Throwable t, String message) {
-        log(t, message, LogLevel.ERROR);
+    public static void sError(Throwable t, String message) {
+        sLog(t, message, LogLevel.ERROR);
     }
 
-    public static void critical(Throwable t, String message) {
-        log(t, message, LogLevel.CRITICAL);
+    public static void sCritical(Throwable t, String message) {
+        sLog(t, message, LogLevel.CRITICAL);
     }
 
-    public static void alert(Throwable t, String message) {
-        log(t, message, LogLevel.ALERT);
+    public static void sAlert(Throwable t, String message) {
+        sLog(t, message, LogLevel.ALERT);
     }
 
-    public static void emergency(Throwable t, String message) {
-        log(t, message, LogLevel.EMERGENCY);
+    public static void sEmergency(Throwable t, String message) {
+        sLog(t, message, LogLevel.EMERGENCY);
     }
 }

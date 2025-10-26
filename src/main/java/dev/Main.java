@@ -6,6 +6,7 @@ import dev.network.PeerPool;
 import dev.utils.Config;
 import dev.utils.CustomException;
 import dev.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,7 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class Main {
+    private final Logger logger;
     private final Config config;
     private final NetworkManager networkManager;
     private final ExecutorService executorService;
@@ -26,6 +29,7 @@ public class Main {
         this.networkManager = new NetworkManager(this.config);
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
         this.peerPool = new PeerPool();
+        this.logger = Logger.getLogger(Main.class);
     }
 
     public static void main(String[] args) {
@@ -39,9 +43,9 @@ public class Main {
         executorService.submit(this::startServerSocket);
         if (!config.isBootstrapNode()) executorService.submit(this::connectToBootstrapNode);
 
-        Logger.info("Network is ready and booted up.");
+        logger.info("Network is ready and booted up.");
         networkManager.start();
-        Logger.debug("----------");
+        logger.debug("----------");
 
         // TODO: replace with proper wait/notify mechanism
         // keep main thread alive while network is running
@@ -50,7 +54,7 @@ public class Main {
             try {
                 Thread.sleep(Long.MAX_VALUE);
             } catch (InterruptedException e) {
-                Logger.critical(e, "Main thread interrupted. Exiting.");
+                Logger.sCritical(e, "Main thread interrupted. Exiting.");
                 throw new CustomException("Main thread interrupted.", e);
             }
         }
@@ -59,7 +63,7 @@ public class Main {
 
     private void startServerSocket() {
         try (ServerSocket serverSocket = new ServerSocket(config.getNodePort())) {
-            Logger.info("Server socket started on port " + config.getNodePort());
+            logger.info("Server socket started on port " + config.getNodePort());
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
@@ -68,20 +72,20 @@ public class Main {
 
             }
         } catch (IOException e) {
-            Logger.emergency(e, "Could not start Bootstrap Node. Exiting.");
+            Logger.sEmergency(e, "Could not start Bootstrap Node. Exiting.");
             throw new CustomException("Could not start Bootstrap Node.", e);
         }
     }
 
     private void connectToBootstrapNode() {
-        Logger.info("Connecting to bootstrap node at " + config.getBootstrapNodeHost() + ":" + config.getBootstrapNodePort());
+        logger.info("Connecting to bootstrap node at " + config.getBootstrapNodeHost() + ":" + config.getBootstrapNodePort());
 
         try (Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort())) {
-            Logger.info("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
+            Logger.sInfo("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
             Peer peer = networkManager.createOutboundPeer(socket);
             executorService.submit(peer);
         } catch (IOException e) {
-            Logger.emergency(e, "Could not connect to Bootstrap Node. Exiting.");
+            Logger.sEmergency(e, "Could not connect to Bootstrap Node. Exiting.");
             throw new CustomException("Could not connect to Bootstrap Node.", e);
         }
     }
