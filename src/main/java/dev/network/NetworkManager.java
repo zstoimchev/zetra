@@ -1,5 +1,6 @@
 package dev.network;
 
+import dev.message.Message;
 import dev.utils.Config;
 import dev.utils.Logger;
 import lombok.Getter;
@@ -18,6 +19,8 @@ public class NetworkManager {
     private final Config config;
     private final PeerPool peerPool;
 
+    // TODO: public/private keypair for this node
+
     // methods to broadcast messages to peers
 
 
@@ -32,8 +35,14 @@ public class NetworkManager {
         isRunning.set(true);
     }
 
+    public void handleMessage() {
+        // TODO: need a class, probably protocol implemented,
+        // that handles incoming messages and dispatches them to appropriate handlers
+
+    }
+
     public Peer createOutboundPeer(Socket socket) {
-        return new Peer(socket);
+        return new Peer(socket, this);
     }
 
     public Peer createInboundPeer(Socket socket) {
@@ -48,10 +57,24 @@ public class NetworkManager {
         Logger.info("Accepting new inbound peer: " + socket.getRemoteSocketAddress());
         return peer;
         */
-        return new Peer(socket);
+        return new Peer(socket, this);
     }
 
     public boolean isRunning() {
         return isRunning.get();
+    }
+
+    public void sendMessage(Peer peer, Message message) {
+        // TODO: first sign the message
+        // then, serialize the message
+        // and only after that, send the message
+        peer.send(message);
+    }
+
+    public void broadcastMessage(Message message) {
+        peerPool.getActivePeers().values().forEach(peer -> sendMessage(peer, message));
+        for (Peer peer : peerPool.getActivePeers().values()) {
+            sendMessage(peer, message);
+        }
     }
 }

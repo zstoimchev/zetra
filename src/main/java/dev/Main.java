@@ -2,7 +2,6 @@ package dev;
 
 import dev.network.NetworkManager;
 import dev.network.Peer;
-import dev.network.PeerPool;
 import dev.utils.Config;
 import dev.utils.CustomException;
 import dev.utils.Logger;
@@ -19,14 +18,12 @@ public class Main {
     private final Config config;
     private final NetworkManager networkManager;
     private final ExecutorService executorService;
-    private final PeerPool peerPool;
 
     public Main(String[] args) {
         // TODO: check if args[0] exists and is a valid config file
         this.config = Config.load(args[0]);
         this.networkManager = new NetworkManager(this.config);
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
-        this.peerPool = new PeerPool();
         this.logger = Logger.getLogger(Main.class);
     }
 
@@ -66,7 +63,6 @@ public class Main {
                 Socket clientSocket = serverSocket.accept();
                 Peer newPeer = networkManager.createInboundPeer(clientSocket);
                 executorService.submit(newPeer);
-
             }
         } catch (IOException e) {
             logger.error("Could not start Bootstrap Node. Exiting.", e);

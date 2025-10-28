@@ -1,5 +1,6 @@
 package dev.network;
 
+import dev.message.Message;
 import dev.utils.CustomException;
 import dev.utils.Logger;
 
@@ -13,9 +14,13 @@ public class Peer implements Runnable {
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final BufferedReader in;
     private final BufferedWriter out;
+    private final NetworkManager networkManager;
 
-    public Peer(Socket socket) {
+    // TODO: direction (inbound/outbound), peer ID, capabilities, etc. ? ? ?
+
+    public Peer(Socket socket, NetworkManager networkManager) {
         this.logger = Logger.getLogger(Peer.class);
+        this.networkManager = networkManager;
         this.socket = socket;
         try {
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -60,5 +65,9 @@ public class Peer implements Runnable {
             logger.warn("Error closing connection with peer: {}", socket.getRemoteSocketAddress(), e);
             throw new CustomException("Error closing connection with peer: " + this.socket.getRemoteSocketAddress(), e);
         }
+    }
+
+    public void send(Message message) {
+        // TODO: send the message to this.out
     }
 }
