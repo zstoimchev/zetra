@@ -16,43 +16,43 @@ public class Config {
         try (FileInputStream fis = new FileInputStream(filename)) {
             properties.load(fis);
         } catch (IOException e) {
-            // TODO: log error
-            throw new RuntimeException(e);
-            // TODO: make custom exception
+            Logger.sError(e, "Could not load config file: " + filename);
+            throw new CustomException("Could not load file: " + filename, e);
         }
         return new Config(properties);
     }
 
     public String getNodeHost() {
-        return properties.getProperty("node.host");
+        return properties.getProperty("node.host", "localhost");
     }
 
     public int getNodePort() {
-        return Integer.parseInt(properties.getProperty("node.port"));
+        return Integer.parseInt(properties.getProperty("node.port", "12137"));
     }
 
     public boolean isBootstrapNode() {
-        return Boolean.parseBoolean(properties.getProperty("node.bootstrap"));
+        return Boolean.parseBoolean(properties.getProperty("node.bootstrap", "true"));
     }
 
     public int getMaxConnections() {
-        return Integer.parseInt(properties.getProperty("node.connections.max"));
+        return getOutboundConnectionLimit() + getInboundConnectionLimit();
     }
 
     public int getInboundConnectionLimit() {
-        return Integer.parseInt(properties.getProperty("node.connections.inbound.max"));
+        return Integer.parseInt(properties.getProperty("node.connections.inbound.max", "3"));
     }
 
     public int getOutboundConnectionLimit() {
-        return Integer.parseInt(properties.getProperty("node.connections.outbound.max"));
+        return Integer.parseInt(properties.getProperty("node.connections.outbound.max", "3"));
     }
 
     public String getBootstrapNodeHost() {
-        return properties.getProperty("bootstrap.host");
+        return properties.getProperty("bootstrap.host", "localhost");
     }
 
     public int getBootstrapNodePort() {
-        return Integer.parseInt(properties.getProperty("bootstrap.port"));
+        return Integer.parseInt(properties.getProperty("bootstrap.port", "12137"));
     }
 
+    // TODO: method for verifying config values (integers specifically)
 }

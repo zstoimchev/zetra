@@ -1,70 +1,32 @@
 package dev;
 
+import dev.message.MessageQueue;
 import dev.network.NetworkManager;
-import dev.network.Peer;
+import dev.network.Server;
 import dev.utils.Config;
 import dev.utils.Logger;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class Main {
-    private static NetworkManager networkManager;
-    private static ExecutorService executorService;
-    private static Config config;
+    private final Logger logger;
+    private final Config config;
+    private final Server server;
+
+    // DI and registering all the configuration
+    public Main(String[] args) {
+        this.logger = Logger.getLogger(Main.class);
+        this.config = Config.load(args[0]);
+        NetworkManager networkManager = new NetworkManager(config);
+        MessageQueue queue = new MessageQueue();
+        this.server = new Server(config, queue, networkManager);
+    }
 
     public static void main(String[] args) {
-        networkManager = new NetworkManager();
-        executorService = Executors.newVirtualThreadPerTaskExecutor();
-        config = Config.load(args[0]);
-
-        startNetwork();
+        // TODO: validate args & add a shutdown hook to gracefully stop the network
+        new Main(args).startNetwork();
     }
 
-    private static void startNetwork() {
-        executorService.submit(Main::startServerSocket);
-        if (!config.isBootstrapNode()) executorService.submit(Main::connectToBootstrapNode);
-
-        Logger.info("Network is ready and booted up.");
-        networkManager.start();
-
-        try {
-            Thread.currentThread().join();
-        } catch (InterruptedException e) {
-            Logger.critical(e, "Main thread interrupted. Exiting.");
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void startServerSocket() {
-        try (ServerSocket serverSocket = new ServerSocket(config.getNodePort())) {
-            Logger.info("Server socket started on port " + config.getNodePort());
-
-            while (!Thread.currentThread().isInterrupted()) {
-                Socket clientSocket = serverSocket.accept();
-                Peer newPeer = networkManager.createInboundPeer(clientSocket);
-                executorService.submit(newPeer);
-            }
-
-        } catch (IOException e) {
-            Logger.emergency(e, "Could not start Bootstrap Node. Exiting.");
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void connectToBootstrapNode() {
-        Logger.info("Connecting to bootstrap node");
-        try (Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort())) {
-            Logger.info("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
-            Peer peer = networkManager.createOutboundPeer(socket);
-            executorService.submit(peer);
-        } catch (IOException e) {
-            Logger.emergency(e, "Could not start Bootstrap Node. Exiting.");
-            throw new RuntimeException(e);
-        }
-
+    private void startNetwork() {
+        logger.info("Starting network on port: {}...", config.getNodePort());
+        this.server.start();
     }
 }
