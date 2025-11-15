@@ -1,5 +1,6 @@
 package dev.message;
 
+import dev.message.payload.MessagePayload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,12 +11,18 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Message {
-    public MessageHeader header;
-    public MessageBody body;
+    private MessageType type;
+    private String senderPublicKey;
+    private long timestamp;
 
-    @Override // TODO: construct proper skeleton for JSON formatting?
+    private String messageId;
+    private String signature;
+
+    private MessagePayload payload;
+
+    @Override
     public String toString() {
-        return "Message{header=" + header + ", body=" + body + "}";
+        return "Message{type=" + type + ", id=" + messageId + ", senderPublicKey=" + senderPublicKey + ", payload=" + payload + "}";
     }
 }
 
