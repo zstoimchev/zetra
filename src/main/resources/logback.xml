@@ -22,7 +22,7 @@
     </appender>
 
     <!-- Root Logger -->
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="console" />
         <appender-ref ref="file" />
     </root>

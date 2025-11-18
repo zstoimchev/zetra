@@ -62,7 +62,6 @@ public class Server extends Thread {
             Socket socket = new Socket(config.getBootstrapNodeHost(), config.getBootstrapNodePort());
             logger.info("Connected to bootstrap node: " + socket.getRemoteSocketAddress());
             peerExecutor.submit(new Peer(socket, queue, networkManager, PeerDirection.OUTBOUND));
-            logger.debug("fa erg esrgs er gsdf ghsdf gsget rghsd gsdg eges rge srgesr");
         } catch (IOException e) {
             logger.error("Could not connect to Bootstrap Node. Exiting.", e);
         }
