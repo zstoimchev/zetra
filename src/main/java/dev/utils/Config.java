@@ -1,10 +1,11 @@
 package dev.utils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Config {
+    private static final Logger logger = Logger.getLogger(Config.class);
     private final Properties properties;
 
     public Config(Properties properties) {
@@ -13,13 +14,30 @@ public class Config {
 
     public static Config load(String filename) {
         Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(filename)) {
-            properties.load(fis);
+
+        try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
+
+            if (in == null) {
+                logger.error("No config file was provided. Usage: java Main <config-file>");
+                throw new CustomException("Resource not found on classpath: " + filename, null);
+            }
+
+            properties.load(in);
+
         } catch (IOException e) {
-            Logger.sError(e, "Could not load config file: " + filename);
+            logger.error("Could not load config file: {}", filename, e);
             throw new CustomException("Could not load file: " + filename, e);
         }
+
         return new Config(properties);
+
+//        try (FileInputStream fis = new FileInputStream(filename)) {
+//            properties.load(fis);
+//        } catch (IOException e) {
+//            Logger.sError(e, "Could not load config file: " + filename);
+//            throw new CustomException("Could not load file: " + filename, e);
+//        }
+//        return new Config(properties);
     }
 
     public String getNodeHost() {
