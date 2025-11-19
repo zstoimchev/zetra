@@ -62,19 +62,5 @@ public class NetworkManager {
         return Base64.getEncoder().encodeToString(getPublicKey().getEncoded());
     }
 
-    /*
-    public void connectToPeer(String host, int port) {
-        peerExecutor.submit(() -> {
-            try {
-                Socket socket = new Socket(host, port);
-                Peer peer = new Peer(socket, messageQueue, this, PeerDirection.OUTBOUND);
-                peerExecutor.submit(peer);
-            } catch (IOException e) {
-                logger.error("Failed to connect to {}:{}", host, port, e);
-            }
-        });
-    }
-     */
-
 }
 

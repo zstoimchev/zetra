@@ -153,6 +153,7 @@ public class Peer implements Runnable {
     public void disconnect() {
         try {
             socket.close();
+            networkManager.unregisterPeer(this);
             logger.warn("Closed connection with peer: {}", this.peerId);
         } catch (IOException e) {
             logger.warn("Error closing connection with peer: {}", this.peerId, e);
