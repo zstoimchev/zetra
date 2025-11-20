@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Peer implements Runnable {
     private final Logger logger;
+    @Getter
     private final Socket socket;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final BufferedReader in;

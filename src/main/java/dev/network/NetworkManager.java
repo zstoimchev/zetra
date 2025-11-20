@@ -1,5 +1,6 @@
 package dev.network;
 
+import dev.message.Message;
 import dev.message.MessageBuilder;
 import dev.utils.Config;
 import dev.utils.Crypto;
@@ -62,5 +63,16 @@ public class NetworkManager {
         return Base64.getEncoder().encodeToString(getPublicKey().getEncoded());
     }
 
+    public void broadcast(Message message) {
+        logger.debug("Broadcasting message type {} to {} peers", message.getType(), connectedPeers.size());
+
+        for (Peer peer : connectedPeers.values()) {
+            try {
+                peer.send(message);
+            } catch (Exception e) {
+                logger.error("Failed to send message to peer: {}", peer.getPeerId(), e);
+            }
+        }
+    }
 }
 

@@ -1,13 +1,17 @@
 package dev.protocol;
 
 import dev.message.Message;
+import dev.message.payload.PeerRequestPayload;
 import dev.network.NetworkManager;
 import dev.network.Peer;
-import dev.utils.CustomException;
+import dev.network.PeerInfo;
 import dev.utils.Logger;
 
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PeerDiscoveryProtocol implements Protocol {
     private final Logger logger;
@@ -35,22 +39,64 @@ public class PeerDiscoveryProtocol implements Protocol {
     }
 
     private void handlePeerRequest(Peer peer, Message message) {
-        throw new CustomException("Method not implemented yet . . . ", null);
+        logger.info("Received peer request from: {}", peer.getPeerId());
+
+        List<PeerInfo> peerList = networkManager.getConnectedPeers().values().stream()
+                .filter(p -> !p.getPeerId().equals(peer.getPeerId()))
+                .map(p -> new PeerInfo(
+                        Base64.getEncoder().encodeToString(p.getPublicKey().getEncoded()),
+                        p.getSocket().getLocalAddress().getHostAddress(),   // TODO ? ? ? correct ?
+                        p.getSocket().getLocalPort()                        // TODO ? ? ? correct ?
+                ))
+                .limit(20)
+                .collect(Collectors.toList());
+
+        Message response = networkManager.getMessageBuilder().buildPeerResponseMessage(peerList);
+        peer.send(response);
+        logger.info("Sent {} peers to: {}", peerList.size(), peer.getPeerId());
     }
 
     private void handlePeerResponse(Peer peer, Message message) {
-        throw new CustomException("Method not implemented yet . . . ", null);
+        logger.info("Received peer response from: {}", peer.getPeerId());
+
+        PeerRequestPayload payload = (PeerRequestPayload) message.getPayload();
+        if (payload == null || payload.getPeerList() == null) {
+            logger.warn("Received empty peer response");
+            return;
+        }
+
+        int newPeers = 0;
+        for (PeerInfo peerInfo : payload.getPeerList()) {
+            String publicKey = peerInfo.publicKey;
+            String host = peerInfo.host;
+            Integer port = peerInfo.port;
+
+            if (publicKey != null && host != null && port != null) {
+                if (!knownPeers.containsKey(publicKey)) {
+                    knownPeers.put(publicKey, peerInfo);
+                    newPeers++;
+                }
+            }
+        }
+
+        logger.info("Discovered {} new peers (total known: {})", newPeers, knownPeers.size());
+        // TODO: attempt to connect to some of the new peers
+        // or maybe schedule connection attempts later ? ? ?
+        // connectToNewPeers();
     }
 
-    public static class PeerInfo {
-        public String publicKey;
-        public String host;
-        public int port;
+    public void requestPeers(Peer peer) {
+        logger.info("Requesting peers from peer: {}", peer.getPeerId());
+        Message request = networkManager.getMessageBuilder().buildPeerRequestMessage();
+        peer.send(request);
+    }
 
-        public PeerInfo(String publicKey, String host, int port) {
-            this.publicKey = publicKey;
-            this.host = host;
-            this.port = port;
+    public void broadcastPeerRequest() {
+        logger.info("Broadcasting peer request to all connected peers");
+        Message request = networkManager.getMessageBuilder().buildPeerRequestMessage();
+
+        for (Peer peer : networkManager.getConnectedPeers().values()) {
+            peer.send(request);
         }
     }
 }
