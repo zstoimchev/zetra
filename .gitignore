@@ -40,3 +40,5 @@ build/
 ### Log Files ###
 *.log
 logs/
+
+.idea/copilot*
