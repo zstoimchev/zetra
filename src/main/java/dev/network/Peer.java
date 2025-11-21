@@ -75,6 +75,7 @@ public class Peer implements Runnable {
                     logger.debug("Queued message from {}", this.peerId);
                 } catch (IOException e) {
                     logger.error("Could not read message from peer: " + e.getMessage(), e);
+                    isRunning.set(false);
                 }
             }
         } catch (Exception e) {
